@@ -68,7 +68,7 @@ DEFAULT_REWARD_SCALING = {
 
 @hydra.main(version_base=None, config_path=".", config_name="config")
 def main(cfg: "DictConfig"):
-    from torchrl.trainers.loggers.tensorboard import TensorboardLogger
+    from torchrl.trainers.loggers.wandb import WandbLogger
 
     cfg = correct_for_frame_skip(cfg)
 
@@ -89,7 +89,7 @@ def main(cfg: "DictConfig"):
             datetime.now().strftime("%y_%m_%d-%H_%M_%S"),
         ]
     )
-    logger = TensorboardLogger(f"ddpg_logging/{exp_name}")
+    logger = WandbLogger(f"ddpg_logging/{exp_name}", project="torchrl")
     video_tag = exp_name if cfg.record_video else ""
 
     stats = None

@@ -108,7 +108,7 @@ class WandbLogger(Logger):
                 self._has_imported_moviepy = True
             except ImportError:
                 raise Exception(
-                    "moviepy not found, videos cannot be logged with TensorboardLogger"
+                    "moviepy not found, videos cannot be logged"
                 )
         self.video_log_counter += 1
         if step is not None:

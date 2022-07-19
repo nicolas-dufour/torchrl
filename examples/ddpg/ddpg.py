@@ -89,7 +89,7 @@ def main(cfg: "DictConfig"):
             datetime.now().strftime("%y_%m_%d-%H_%M_%S"),
         ]
     )
-    logger = WandbLogger(f"ddpg_logging/{exp_name}", project="torchrl")
+    logger = WandbLogger(f"ddpg_logging/{exp_name}", project="torchrl", group="DDPG_{cfg.env_name}")
     video_tag = "video" if cfg.record_video else ""
 
     stats = None

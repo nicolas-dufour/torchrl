@@ -75,7 +75,7 @@ def main(cfg: "DictConfig"):
         ]
     )
     logger = WandbLogger(f"ppo_logging/{exp_name}", project="torchrl")
-    video_tag = exp_name if cfg.record_video else ""
+    video_tag = "video" if cfg.record_video else ""
 
     stats = None
     if not cfg.vecnorm and cfg.norm_stats:

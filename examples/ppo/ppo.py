@@ -53,7 +53,11 @@ cs.store(name="config", node=Config)
 
 @hydra.main(version_base=None, config_path=".", config_name="config")
 def main(cfg: "DictConfig"):
+<<<<<<< HEAD
     from torchrl.trainers.loggers.wandb import WandbLogger
+=======
+    from torchrl.trainers.loggers.tensorboard import TensorboardLogger
+>>>>>>> 8b9e53769870f9b846f7eff20ec4c10a8d14954e
 
     cfg = correct_for_frame_skip(cfg)
 

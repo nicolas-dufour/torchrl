@@ -1,0 +1,12 @@
+diff --git a/torchrl/envs/libs/dm_control.py b/torchrl/envs/libs/dm_control.py
+index f7ffae4..282f8c4 100644
+--- a/torchrl/envs/libs/dm_control.py
++++ b/torchrl/envs/libs/dm_control.py
+@@ -113,6 +113,7 @@ class DMControlWrapper(GymLikeEnv):
+     git_url = "https://github.com/deepmind/dm_control"
+     libname = "dm_control"
+     available_envs = _get_envs()
++    print(available_envs)
+ 
+     def __init__(self, env=None, **kwargs):
+         if env is not None:

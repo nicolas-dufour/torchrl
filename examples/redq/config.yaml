@@ -1,5 +1,5 @@
 env_name: cheetah
-env_task: ""
+env_task: run
 env_library: dm_control
 async_collection: 1
 record_video: 0

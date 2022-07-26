@@ -113,7 +113,6 @@ class DMControlWrapper(GymLikeEnv):
     git_url = "https://github.com/deepmind/dm_control"
     libname = "dm_control"
     available_envs = _get_envs()
-    print(available_envs)
 
     def __init__(self, env=None, **kwargs):
         if env is not None:

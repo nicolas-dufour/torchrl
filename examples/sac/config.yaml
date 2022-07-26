@@ -1,4 +1,4 @@
-env_name: Cheetah-v4
+env_name: cheetah
 env_task: ""
 env_library: dm_control
 async_collection: 1

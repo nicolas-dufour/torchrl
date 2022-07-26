@@ -1,6 +1,6 @@
 env_name: Cheetah-v4
 env_task: ""
-env_library: dm-control
+env_library: dm_control
 async_collection: 1
 record_video: 0
 normalize_rewards_online: 1

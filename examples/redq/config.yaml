@@ -1,4 +1,4 @@
-env_name: Ant-v4
+env_name: Walker2d-v4
 env_task: ""
 env_library: gym
 async_collection: 1
@@ -18,10 +18,9 @@ init_random_frames: 10000
 activation: elu
 gSDE: 0
 from_pixels: 0
-#collector_devices: [cuda:1,cuda:1,cuda:1,cuda:1]
-collector_devices: [cpu,cpu]
-env_per_collector: 1
-num_workers: 2
+collector_devices: [cuda:1,cuda:1,cuda:1,cuda:1]
+env_per_collector: 2
+num_workers: 8
 lr_scheduler: ""
 value_network_update_interval: 200
 record_interval: 10

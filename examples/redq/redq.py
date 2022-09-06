@@ -100,7 +100,9 @@ def main(cfg: "DictConfig"):  # noqa: F821
     elif cfg.logger == "wandb":
         from torchrl.trainers.loggers.wandb import WandbLogger
 
-        logger = WandbLogger(log_dir="redq_logging", exp_name=exp_name)
+        logger = WandbLogger( f"redq/{exp_name}",
+            project="torchrl",
+            group=f"REDQ_{cfg.env_name}",)
     video_tag = exp_name if cfg.record_video else ""
 
     stats = None

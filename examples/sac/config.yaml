@@ -33,3 +33,4 @@ loss_function: smooth_l1
 batch_transform: 1
 buffer_prefetch: 64
 norm_stats: 1
+logger: wandb

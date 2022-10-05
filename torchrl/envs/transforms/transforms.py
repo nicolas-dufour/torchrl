@@ -1302,6 +1302,7 @@ class ObservationNorm(ObservationTransform):
         if self.standard_normal:
             loc = self.loc
             scale = self.scale
+            print(f"loc device: {loc}, scale: {scale}")
             return (obs - loc) / scale
         else:
             scale = self.scale

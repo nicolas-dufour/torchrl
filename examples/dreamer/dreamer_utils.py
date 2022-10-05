@@ -63,8 +63,8 @@ def make_env_transforms(
 
     if pixel_stats is not None:
 
-        print(f"Pixel stats device: {pixel_stats.device}")
-        print(f"State stats device: {state_stats.device}")
+        print(f"Pixel stats device: {pixel_stats['loc'].device}")
+        print(f"State stats device: {state_stats['loc'].device}")
         print(f"Env device: {env.device}")
 
     from_pixels = cfg.from_pixels

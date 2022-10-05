@@ -1294,7 +1294,6 @@ class ObservationNorm(ObservationTransform):
 
         # self.observation_spec_key = observation_spec_key
         self.standard_normal = standard_normal
-        self.device = loc.device
         self.register_buffer("loc", loc)
         eps = 1e-6
         self.register_buffer("scale", scale.clamp_min(eps))
@@ -1315,8 +1314,8 @@ class ObservationNorm(ObservationTransform):
         space = observation_spec.space
         if isinstance(space, ContinuousBox):
             spec_device = space.minimum.device
-            space.minimum = self._apply_transform(space.minimum.to(self.device)).to(spec_device)
-            space.maximum = self._apply_transform(space.maximum.to(self.device)).to(spec_device)
+            space.minimum = self._apply_transform(space.minimum.to(self.loc.device)).to(spec_device)
+            space.maximum = self._apply_transform(space.maximum.to(self.loc.device)).to(spec_device)
         return observation_spec
 
     def __repr__(self) -> str:

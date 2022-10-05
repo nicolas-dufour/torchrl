@@ -61,6 +61,10 @@ def make_env_transforms(
 ):
     env = TransformedEnv(env)
 
+    print(f"Pixel stats device: {pixel_stats.device}")
+    print(f"State stats device: {state_stats.device}")
+    print(f"Env device: {env.device}")
+
     from_pixels = cfg.from_pixels
     vecnorm = cfg.vecnorm
     norm_rewards = vecnorm and cfg.norm_rewards

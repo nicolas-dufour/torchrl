@@ -26,3 +26,4 @@ class LoggerConfig:
     # Keys to log in the recorder
     offline_logging: bool = True
     # If True, Wandb will do the logging offline
+    prefix: str = ""

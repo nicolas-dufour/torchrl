@@ -201,7 +201,7 @@ def main(cfg: "DictConfig"):  # noqa: F821
         logger = WandbLogger(
             f"dreamer/{exp_name}",
             project="torchrl",
-            group=f"Dreamer_{cfg.env_name}",
+            group=f"Dreamer_{cfg.env_name}_{cfg.prefix}",
             offline=cfg.offline_logging,
         )
     elif cfg.logger == "csv":

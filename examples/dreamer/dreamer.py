@@ -49,7 +49,7 @@ from torchrl.trainers.helpers.replay_buffer import (
 )
 from torchrl.trainers.trainers import Recorder, RewardNormalizer
 
-
+import torchdynamo
 @dataclass
 class TrainingConfig:
     optim_steps_per_batch: int = 500
@@ -254,14 +254,14 @@ def main(cfg: "DictConfig"):  # noqa: F821
         reward_normalizer = None
 
     # Losses
-    world_model_loss = DreamerModelLoss(world_model)
-    actor_loss = DreamerActorLoss(
+    world_model_loss = torchdynamo.optimize("inductor")(DreamerModelLoss(world_model))
+    actor_loss = torchdynamo.optimize("inductor")(DreamerActorLoss(
         actor_model,
         value_model,
         model_based_env,
         imagination_horizon=cfg.imagination_horizon,
-    )
-    value_loss = DreamerValueLoss(value_model)
+    ))
+    value_loss = torchdynamo.optimize("inductor")(DreamerValueLoss(value_model))
 
     action_spec = transformed_env_constructor(cfg)().action_spec
     # Actor and value network

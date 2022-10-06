@@ -14,7 +14,6 @@ from torchrl.modules import TensorDictModule
 from torchrl.objectives.costs.common import LossModule
 from torchrl.objectives.costs.utils import hold_out_net, distance_loss
 from torchrl.objectives.returns.functional import vec_td_lambda_return_estimate
-import torchdynamo
 
 __all__ = ["DreamerModelLoss", "DreamerActorLoss", "DreamerValueLoss"]
 
@@ -61,7 +60,6 @@ class DreamerModelLoss(LossModule):
         self.free_nats = free_nats
         self.delayed_clamp = delayed_clamp
 
-    @torchdynamo.optimize("inductor")
     def forward(self, tensordict: TensorDict) -> torch.Tensor:
         tensordict = tensordict.clone(recurse=False)
         tensordict.rename_key("reward", "true_reward")
@@ -161,7 +159,6 @@ class DreamerActorLoss(LossModule):
         self.lmbda = lmbda
         self.discount_loss = discount_loss
 
-    @torchdynamo.optimize("inductor")
     def forward(self, tensordict: TensorDict) -> torch.Tensor:
         with torch.no_grad():
             tensordict = tensordict.select("state", "belief")
@@ -234,7 +231,6 @@ class DreamerValueLoss(LossModule):
         self.gamma = gamma
         self.discount_loss = discount_loss
 
-    @torchdynamo.optimize("inductor")
     def forward(self, tensordict) -> torch.Tensor:
         lambda_target = tensordict.get("lambda_target")
         tensordict_select = tensordict.select(*self.value_model.in_keys)

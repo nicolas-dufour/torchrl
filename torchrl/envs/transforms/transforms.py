@@ -1313,9 +1313,9 @@ class ObservationNorm(ObservationTransform):
         observation_spec = deepcopy(observation_spec)
         space = observation_spec.space
         if isinstance(space, ContinuousBox):
-            spec_device = space.minimum.device
-            space.minimum = self._apply_transform(space.minimum.to(self.loc.device)).to(spec_device)
-            space.maximum = self._apply_transform(space.maximum.to(self.loc.device)).to(spec_device)
+            observation_spec_device = deepcopy(space.minimum.device)
+            space.minimum = self._apply_transform(space.minimum.to(self.loc.device)).to(observation_spec_device)
+            space.maximum = self._apply_transform(space.maximum.to(self.loc.device)).to(observation_spec_device)
         return observation_spec
 
     def __repr__(self) -> str:

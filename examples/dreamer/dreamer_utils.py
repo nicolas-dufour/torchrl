@@ -189,7 +189,7 @@ def make_env_transforms(
     env.append_transform(
         TensorDictPrimer(random=False, default_value=0, **default_dict)
     )
-
+    env.reset()
     return env
 
 
@@ -264,6 +264,10 @@ def transformed_env_constructor(
                 "from_pixels": from_pixels or len(video_tag),
                 "pixels_only": from_pixels and pixels_only,
             }
+            if env_name == "quadruped":
+                # hard code camera_id for quadruped
+                camera_id = "x"
+                env_kwargs["camera_id"] = camera_id
             if env_library is DMControlEnv:
                 env_kwargs.update({"task_name": env_task})
             env_kwargs.update(kwargs)
@@ -368,28 +372,29 @@ def call_record(
     if cfg.record_video and record._count % cfg.record_interval == 0:
         world_model_td = sampled_tensordict
 
-        true_pixels = recover_pixels(world_model_td["next_pixels"], stats)
+        if "next_pixels" in world_model_td:
+            true_pixels = recover_pixels(world_model_td["next_pixels"], stats)
 
-        reco_pixels = recover_pixels(world_model_td["next_reco_pixels"], stats)
-        with autocast(dtype=torch.float16):
-            world_model_td = world_model_td.select("state", "belief", "reward")
-            world_model_td = model_based_env.rollout(
-                max_steps=true_pixels.shape[1],
-                policy=actor_model,
-                auto_reset=False,
-                tensordict=world_model_td[:, 0],
+            reco_pixels = recover_pixels(world_model_td["next_reco_pixels"], stats)
+            with autocast(dtype=torch.float16):
+                world_model_td = world_model_td.select("state", "belief", "reward")
+                world_model_td = model_based_env.rollout(
+                    max_steps=true_pixels.shape[1],
+                    policy=actor_model,
+                    auto_reset=False,
+                    tensordict=world_model_td[:, 0],
+                )
+            imagine_pxls = recover_pixels(
+                model_based_env.decode_obs(world_model_td)["next_reco_pixels"],
+                stats,
             )
-        imagine_pxls = recover_pixels(
-            model_based_env.decode_obs(world_model_td)["next_reco_pixels"],
-            stats,
-        )
 
-        stacked_pixels = torch.cat([true_pixels, reco_pixels, imagine_pxls], dim=-1)
-        if logger is not None:
-            logger.log_video(
-                "pixels_rec_and_imag",
-                stacked_pixels.detach().cpu(),
-            )
+            stacked_pixels = torch.cat([true_pixels, reco_pixels, imagine_pxls], dim=-1)
+            if logger is not None:
+                logger.log_video(
+                    "pixels_rec_and_imag",
+                    stacked_pixels.detach().cpu(),
+                )
 
 
 def grad_norm(optimizer: torch.optim.Optimizer):

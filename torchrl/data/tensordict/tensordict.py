@@ -725,11 +725,10 @@ dtype=torch.float32)},
 
         """
 
-        if not isinstance(other, (TensorDictBase, float, int)):
-            raise TypeError(
-                f"TensorDict comparision requires both objects to be "
-                f"TensorDictBase subclass, int or float, got {type(other)}"
-            )
+        if not isinstance(other, (TensorDictBase, dict, float, int)):
+            return False
+        if not isinstance(other, TensorDictBase) and isinstance(other, dict):
+            other = make_tensordict(**other, batch_size=self.batch_size)
         if not isinstance(other, TensorDictBase):
             return TensorDict(
                 {key: value != other for key, value in self.items()},
@@ -756,11 +755,10 @@ dtype=torch.float32)},
             tensors of the same shape as the original tensors.
 
         """
-        if not isinstance(other, (TensorDictBase, float, int)):
-            raise TypeError(
-                f"TensorDict comparision requires both objects to be "
-                f"TensorDictBase subclass, got {type(other)}"
-            )
+        if not isinstance(other, (TensorDictBase, dict, float, int)):
+            return False
+        if not isinstance(other, TensorDictBase) and isinstance(other, dict):
+            other = make_tensordict(**other, batch_size=self.batch_size)
         if not isinstance(other, TensorDictBase):
             return TensorDict(
                 {key: value == other for key, value in self.items()},
@@ -4732,3 +4730,41 @@ def _expand_to_match_shape(parent_batch_size, tensor, self_batch_dims, self_devi
 #
 #
 # _register_pytree_node(TensorDict, _flatten_tensordict, _unflatten_tensordict)
+
+
+def make_tensordict(
+    batch_size: Optional[Union[Sequence[int], torch.Size, int]] = None,
+    device: Optional[DEVICE_TYPING] = None,
+    **kwargs,  # source
+) -> TensorDict:
+    """
+    Returns a TensorDict created from the keyword arguments.
+
+    If batch_size is not specified, returns the maximum batch size possible
+
+    Args:
+        **kwargs (TensorDict or torch.Tensor): keyword arguments as data source.
+        batch_size (iterable of int, optional): a batch size for the tensordict.
+        device (torch.device or compatible type, optional): a device for the TensorDict.
+    """
+    if batch_size is None:
+        batch_size = _find_max_batch_size(kwargs)
+    return TensorDict(kwargs, batch_size=batch_size, device=device)
+
+
+def _find_max_batch_size(source: Union[TensorDictBase, dict]) -> list[int]:
+    tensor_data = list(source.values())
+    batch_size = []
+    if not tensor_data:  # when source is empty
+        return batch_size
+    curr_dim = 0
+    while True:
+        if tensor_data[0].dim() > curr_dim:
+            curr_dim_size = tensor_data[0].size(curr_dim)
+        else:
+            return batch_size
+        for tensor in tensor_data[1:]:
+            if tensor.dim() <= curr_dim or tensor.size(curr_dim) != curr_dim_size:
+                return batch_size
+        batch_size.append(curr_dim_size)
+        curr_dim += 1

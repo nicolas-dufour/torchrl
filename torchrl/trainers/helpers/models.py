@@ -1173,6 +1173,30 @@ def make_dreamer(
     use_decoder_in_env: bool = False,
     stats: Optional[dict] = None,
 ) -> nn.ModuleList:
+    """Create Dreamer components.
+
+    Args:
+        cfg (DictConfig): Config object.
+        proof_environment (EnvBase): Environment to initialize the model.
+        device (DEVICE_TYPING, optional): Device to use.
+            Defaults to "cpu".
+        action_key (str, optional): Key to use for the action.
+            Defaults to "action".
+        value_key (str, optional): Key to use for the value.
+            Defaults to "state_value".
+        use_decoder_in_env (bool, optional): Whether to use the decoder in the model based dreamer env.
+            Defaults to False.
+        stats (Optional[dict], optional): Stats to use for normalization.
+            Defaults to None.
+
+    Returns:
+        nn.TensorDictModel: Dreamer World model.
+        nn.TensorDictModel: Dreamer Model based environnement.
+        nn.TensorDictModel: Dreamer Actor the world model space.
+        nn.TensorDictModel: Dreamer Value model.
+        nn.TensorDictModel: Dreamer Actor for the real world space.
+
+    """
 
     proof_env_is_none = proof_environment is None
     if proof_env_is_none:
@@ -1219,6 +1243,7 @@ def make_dreamer(
             ],
         ),
     )
+
     transition_model = TensorDictSequential(
         TensorDictModule(
             obs_encoder,
@@ -1259,9 +1284,23 @@ def make_dreamer(
         out_key_sample=[action_key],
         default_interaction_mode="random",
         distribution_class=TanhNormal,
+        spec=CompositeSpec(
+            **{
+                action_key: proof_environment.action_spec,
+                "loc": NdUnboundedContinuousTensorSpec(
+                    proof_environment.action_spec.shape,
+                    device=proof_environment.action_spec.device,
+                ),
+                "scale": NdUnboundedContinuousTensorSpec(
+                    proof_environment.action_spec.shape,
+                    device=proof_environment.action_spec.device,
+                ),
+            }
+        ),
     )
-
     # actor for real world: interacts with states ~ posterior
+    # Out actor differs from the original paper where first they compute prior and posterior and then act on it
+    # but we found that this approach worked better.
     actor_realworld = TensorDictSequential(
         TensorDictModule(
             obs_encoder,
@@ -1287,6 +1326,17 @@ def make_dreamer(
             out_key_sample=[action_key],
             default_interaction_mode="random",
             distribution_class=TanhNormal,
+            spec=CompositeSpec(
+                **{
+                    action_key: proof_environment.action_spec.to("cpu"),
+                    "loc": NdUnboundedContinuousTensorSpec(
+                        proof_environment.action_spec.shape,
+                    ),
+                    "scale": NdUnboundedContinuousTensorSpec(
+                        proof_environment.action_spec.shape,
+                    ),
+                }
+            ),
         ),
         TensorDictModule(
             rssm_prior,
@@ -1299,7 +1349,6 @@ def make_dreamer(
             ],
         ),
     )
-
     value_model = TensorDictModule(
         MLP(
             out_features=1,
@@ -1353,7 +1402,7 @@ def make_dreamer(
     default_dict = {
         "next_state": NdUnboundedContinuousTensorSpec(cfg.state_dim),
         "next_belief": NdUnboundedContinuousTensorSpec(cfg.rssm_hidden_dim),
-        "action": proof_environment.action_spec,
+        # "action": proof_environment.action_spec,
     }
     model_based_env.append_transform(
         TensorDictPrimer(random=False, default_value=0, **default_dict)
@@ -1390,6 +1439,7 @@ def make_dreamer(
 
 @dataclass
 class DreamerConfig:
+    batch_length: int = 50
     state_dim: int = 30
     rssm_hidden_dim: int = 200
     mlp_num_units: int = 400
@@ -1398,11 +1448,6 @@ class DreamerConfig:
     actor_value_lr: float = 8e-5
     imagination_horizon: int = 15
     model_device: str = ""
-    normalize_rewards_online: bool = False
-    # Computes the running statistics of the rewards and normalizes them before they are passed to the loss module.
-    normalize_rewards_online_scale: float = 1.0
-    # Final scale of the normalized rewards.
-    normalize_rewards_online_decay: float = 0.9999
     # Decay of the reward moving averaging
     exploration: str = "additive_gaussian"
     # One of "additive_gaussian", "ou_exploration" or ""
